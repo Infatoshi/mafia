@@ -1,7 +1,11 @@
 """Run Mafia RL training on Modal H100s.
 
+Trains the Mafia player against a FROZEN base model playing Town roles.
+This prevents the shared-weight collapse where Town gets dumber instead
+of Mafia getting smarter.
+
 Usage:
-    modal run modal_train.py
+    modal run --detach modal_train.py
 """
 
 import modal
@@ -22,11 +26,11 @@ MINUTES = 60
 @app.function(
     image=image,
     gpu="H100",
-    timeout=90 * MINUTES,
+    timeout=300 * MINUTES,
     volumes={"/data": vol},
 )
 def train_and_capture():
-    """Run training for ~1hr, capture before/after game samples."""
+    """Train Mafia agent against frozen Town baseline."""
     import json
     import sys
     import time
@@ -36,7 +40,7 @@ def train_and_capture():
     import gc
     import torch
 
-    # -- capture pre-training games (baseline) --------------------------------
+    # -- capture pre-training games (baseline vs baseline) ---------------------
     print("=" * 60)
     print("PRE-TRAINING BASELINE GAMES")
     print("=" * 60)
@@ -46,11 +50,9 @@ def train_and_capture():
     model.eval()
     model.to(mafia.DEVICE)
 
+    baseline_games = mafia.rollout_games(model, tokenizer, 10)
     pre_games = []
-    for i in range(10):
-        gen = lambda msgs, mnt: mafia.generate(model, tokenizer, msgs, max_new_tokens=mnt)
-        game = mafia.MafiaGame(gen_fn=gen, verbose=(i < 2))
-        game.run()
+    for i, game in enumerate(baseline_games):
         r = mafia.compute_reward(game)
         pre_games.append({
             "winner": game.winner, "days": game.day, "reward": r,
@@ -67,23 +69,34 @@ def train_and_capture():
     baseline_wins = sum(1 for g in pre_games if g["winner"] == "Mafia")
     print(f"\nBaseline win rate: {baseline_wins}/10 ({baseline_wins*10}%)")
 
-    # -- training (1 hour) ----------------------------------------------------
+    # -- training with separate models -----------------------------------------
     print("\n" + "=" * 60)
-    print("GRPO TRAINING")
+    print("GRPO TRAINING (policy vs frozen base)")
     print("=" * 60)
 
     mafia.GRPO_GROUP_SIZE = 8
     mafia.CHECKPOINT_EVERY = 25
     mafia.MAX_ITERS = 9999
+    mafia.LR = 5e-4  # much higher -- old 1e-5 with clip=1 gave sub-fp16 updates
 
-    model = mafia.load_model()
+    # Frozen base model for Town players -- stays on GPU throughout
+    base_model = mafia.load_model()
+    base_model.eval()
+    base_model.to(mafia.DEVICE)
+    for p in base_model.parameters():
+        p.requires_grad = False
+
+    # Policy model for Mafia -- stays on GPU, switches between eval/train
+    policy_model = mafia.load_model()
+    policy_model.to(mafia.DEVICE)
     tokenizer = mafia.load_tokenizer()
-    ckpt_dir = mafia.Path("/data/checkpoints")
+
+    ckpt_dir = mafia.Path("/data/checkpoints-v3")
     ckpt_dir.mkdir(exist_ok=True)
 
     metrics = []
     t_start = time.time()
-    TIME_LIMIT = 55 * MINUTES
+    TIME_LIMIT = 170 * MINUTES  # ~2.8 hours of training
 
     for it in range(1, mafia.MAX_ITERS + 1):
         if time.time() - t_start > TIME_LIMIT:
@@ -92,12 +105,9 @@ def train_and_capture():
 
         t0 = time.time()
 
-        # rollout
-        model.eval()
-        model.to(mafia.DEVICE)
-        games = mafia.rollout_games(model, tokenizer, mafia.GRPO_GROUP_SIZE)
-        model.to("cpu")
-        torch.cuda.empty_cache()
+        # rollout: both models stay on GPU
+        policy_model.eval()
+        games = mafia.rollout_games(policy_model, tokenizer, mafia.GRPO_GROUP_SIZE, base_model=base_model)
 
         trajectories = [mafia.extract_mafia_turns(g) for g in games]
         rewards = torch.tensor([mafia.compute_reward(g) for g in games])
@@ -112,12 +122,11 @@ def train_and_capture():
 
         advantages = (rewards - rewards.mean()) / (rewards.std() + 1e-8)
 
-        # training
+        # training: both models stay on GPU, gradient checkpointing saves memory
         t1 = time.time()
-        model.to(mafia.DEVICE)
-        model.train()
-        model.gradient_checkpointing_enable()
-        optimizer = torch.optim.SGD(model.parameters(), lr=mafia.LR)
+        policy_model.train()
+        policy_model.gradient_checkpointing_enable()
+        optimizer = torch.optim.SGD(policy_model.parameters(), lr=mafia.LR)
         optimizer.zero_grad()
 
         n_turns = sum(len(t) for t in trajectories)
@@ -125,16 +134,15 @@ def train_and_capture():
 
         for traj, adv in zip(trajectories, advantages):
             for turn in traj:
-                lp = mafia.compute_log_probs(model, tokenizer, turn["messages"], turn["completion"])
+                lp = mafia.compute_log_probs(policy_model, tokenizer, turn["messages"], turn["completion"])
                 loss = -adv * lp / n_turns
                 loss.backward()
                 total_loss += loss.item()
 
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        grad_norm = torch.nn.utils.clip_grad_norm_(policy_model.parameters(), 100.0)
         optimizer.step()
 
-        model.gradient_checkpointing_disable()
-        model.to("cpu")
+        policy_model.gradient_checkpointing_disable()
         del optimizer
         gc.collect()
         torch.cuda.empty_cache()
@@ -149,11 +157,12 @@ def train_and_capture():
             "loss": total_loss, "turns": n_turns, "elapsed": elapsed,
             "t_rollout": t_rollout, "t_train": t_train, "vram_peak_gb": vram_peak,
             "wall_time": time.time() - t_start,
+            "grad_norm": grad_norm.item(),
         }
         metrics.append(row)
         print(
             f"iter {it:4d} | win {win_rate:.0%} | reward {rewards.mean().item():+.2f} "
-            f"| loss {total_loss:+.4f} | {n_turns} turns "
+            f"| loss {total_loss:+.4f} | gnorm {grad_norm.item():.3f} | {n_turns} turns "
             f"| rollout {t_rollout:.0f}s train {t_train:.0f}s | {vram_peak:.1f}GB peak"
         )
 
@@ -164,7 +173,7 @@ def train_and_capture():
             if save_path.exists():
                 shutil.rmtree(save_path)
             save_path.mkdir(parents=True)
-            model.save_pretrained(save_path)
+            policy_model.save_pretrained(save_path)
             tokenizer.save_pretrained(save_path)
             vol.commit()
             print(f"  checkpoint: {save_path}")
@@ -175,22 +184,18 @@ def train_and_capture():
     if final_path.exists():
         shutil.rmtree(final_path)
     final_path.mkdir(parents=True)
-    model.save_pretrained(final_path)
+    policy_model.save_pretrained(final_path)
     tokenizer.save_pretrained(final_path)
 
-    # -- post-training eval ---------------------------------------------------
+    # -- post-training eval: trained Mafia vs frozen Town ----------------------
     print("\n" + "=" * 60)
-    print("POST-TRAINING EVAL GAMES")
+    print("POST-TRAINING EVAL (trained Mafia vs frozen Town)")
     print("=" * 60)
 
-    model.eval()
-    model.to(mafia.DEVICE)
-
+    policy_model.eval()
+    trained_games = mafia.rollout_games(policy_model, tokenizer, 10, base_model=base_model)
     post_games = []
-    for i in range(10):
-        gen = lambda msgs, mnt: mafia.generate(model, tokenizer, msgs, max_new_tokens=mnt)
-        game = mafia.MafiaGame(gen_fn=gen, verbose=(i < 2))
-        game.run()
+    for i, game in enumerate(trained_games):
         r = mafia.compute_reward(game)
         post_games.append({
             "winner": game.winner, "days": game.day, "reward": r,
@@ -204,6 +209,7 @@ def train_and_capture():
 
     # -- save results ---------------------------------------------------------
     results = {
+        "setup": "policy_model (Mafia) vs frozen base_model (Town)",
         "baseline_win_rate": baseline_wins / 10,
         "trained_win_rate": trained_wins / 10,
         "total_iterations": len(metrics),
@@ -213,7 +219,7 @@ def train_and_capture():
         "post_games": post_games,
     }
 
-    with open("/data/results.json", "w") as f:
+    with open("/data/results-v3.json", "w") as f:
         json.dump(results, f, indent=2)
 
     vol.commit()

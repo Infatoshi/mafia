@@ -1,9 +1,10 @@
 [project]
 name = "mafia"
 version = "0.1.0"
-description = "Add your description here"
-requires-python = ">=3.14"
+description = "Train an LLM to play Mafia using reinforcement learning"
+requires-python = ">=3.12"
 dependencies = [
+    "matplotlib>=3.10.8",
     "torch>=2.0",
     "transformers>=4.40",
 ]

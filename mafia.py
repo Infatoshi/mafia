@@ -22,7 +22,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # === Config ==================================================================
 
-BASE_MODEL = "Qwen/Qwen3-4B"
+BASE_MODEL = "Qwen/Qwen3-8B"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 NUM_PLAYERS = 7
 GRPO_GROUP_SIZE = 8
@@ -127,6 +127,38 @@ def generate(model, tokenizer, messages, max_new_tokens=120, temperature=0.9):
     return strip_think(resp)
 
 
+@torch.inference_mode()
+def generate_batch(model, tokenizer, prompts, max_new_tokens_list, temperature=0.9):
+    """Batched generation with left-padding for parallel game rollouts."""
+    orig_side = tokenizer.padding_side
+    tokenizer.padding_side = "left"
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
+    texts = [
+        tokenizer.apply_chat_template(
+            msgs, tokenize=False, add_generation_prompt=True,
+            enable_thinking=False,
+        )
+        for msgs in prompts
+    ]
+    inputs = tokenizer(texts, return_tensors="pt", padding=True).to(model.device)
+    max_nt = max(max_new_tokens_list)
+    out = model.generate(
+        **inputs, max_new_tokens=max_nt,
+        temperature=temperature, do_sample=True, top_p=0.95,
+    )
+    prompt_len = inputs["input_ids"].shape[1]
+    responses = []
+    for i in range(len(prompts)):
+        new_tokens = out[i][prompt_len:]
+        resp = tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
+        responses.append(strip_think(resp))
+
+    tokenizer.padding_side = orig_side
+    return responses
+
+
 # === Player ==================================================================
 
 
@@ -147,7 +179,7 @@ class Player:
             "Keep your messages short and natural -- 1-3 sentences. "
             "Sound like a real person in a group chat, not an AI. "
             "Don't use emojis. Don't be overly formal. "
-            "Don't prefix your message with your name.\n/no_think"
+            "Don't prefix your message with your name."
         )
         if self.role == "Detective" and self.detective_results:
             base += "\n\nYour investigation results so far:\n"
@@ -159,8 +191,8 @@ class Player:
 
 
 class MafiaGame:
-    def __init__(self, gen_fn, verbose=True):
-        """gen_fn: callable(messages, max_new_tokens) -> str"""
+    def __init__(self, gen_fn=None, verbose=True):
+        """gen_fn: callable(messages, max_new_tokens) -> str, or None for generator mode."""
         self.gen_fn = gen_fn
         self.verbose = verbose
 
@@ -210,7 +242,8 @@ class MafiaGame:
         return msgs
 
     def _gen(self, player, msgs, max_new_tokens=120, turn=None):
-        text = self.gen_fn(msgs, max_new_tokens)
+        text = yield {"messages": msgs, "max_new_tokens": max_new_tokens, "role": player.role}
+        text = strip_think(text)
         self.api_calls.append({
             "turn": turn, "player": player.name, "role": player.role,
             "messages": msgs, "response": text,
@@ -257,7 +290,7 @@ class MafiaGame:
                     msgs.append({"role": "user", "content": "The game begins. Day 1 discussion is open. Share your thoughts."})
                 else:
                     msgs.append({"role": "user", "content": "Continue the discussion. What do you think?"})
-                text = self._gen(player, msgs, turn=f"day{self.day}-discuss{rnd+1}")
+                text = yield from self._gen(player, msgs, turn=f"day{self.day}-discuss{rnd+1}")
                 self.chat_log.append({"speaker": player.name, "text": text})
                 self._p(f"  {c(player.name, player.ansi)}: {text}")
 
@@ -271,7 +304,7 @@ class MafiaGame:
                 f"Choose exactly one name from: {', '.join(targets)}. "
                 f"Reply with ONLY the name, nothing else."
             )})
-            raw = self._gen(player, msgs, max_new_tokens=20, turn=f"day{self.day}-vote")
+            raw = yield from self._gen(player, msgs, max_new_tokens=20, turn=f"day{self.day}-vote")
             target = self._parse_vote(raw, targets)
             votes[player.name] = target
             self._p(f"  {c(player.name, player.ansi)} votes for {BOLD}{target}{RESET}")
@@ -309,7 +342,7 @@ class MafiaGame:
         if doc:
             msgs = [{"role": "system", "content": doc.system_prompt(self.alive_names)}]
             msgs.append({"role": "user", "content": f"Night phase. Choose one player to protect: {', '.join(self.alive_names)}. Reply with ONLY the name."})
-            raw = self._gen(doc, msgs, max_new_tokens=20, turn=f"night{self.day}-doctor")
+            raw = yield from self._gen(doc, msgs, max_new_tokens=20, turn=f"night{self.day}-doctor")
             target = self._parse_vote(raw, self.alive_names)
             self.players[target].protected = True
             self._p(f"  {c('Doctor', 92)} protects {target}")
@@ -319,7 +352,7 @@ class MafiaGame:
             valid = [n for n in self.alive_names if n != det.name]
             msgs = [{"role": "system", "content": det.system_prompt(self.alive_names)}]
             msgs.append({"role": "user", "content": f"Night phase. Choose one player to investigate: {', '.join(valid)}. Reply with ONLY the name."})
-            raw = self._gen(det, msgs, max_new_tokens=20, turn=f"night{self.day}-detective")
+            raw = yield from self._gen(det, msgs, max_new_tokens=20, turn=f"night{self.day}-detective")
             target = self._parse_vote(raw, valid)
             is_mafia = self.players[target].role == "Mafia"
             result = f"{target} is {'MAFIA' if is_mafia else 'NOT Mafia'}"
@@ -331,7 +364,7 @@ class MafiaGame:
             valid = [n for n in self.alive_names if n != mafia.name]
             msgs = [{"role": "system", "content": mafia.system_prompt(self.alive_names)}]
             msgs.append({"role": "user", "content": f"Night phase. Choose one player to eliminate: {', '.join(valid)}. Consider who is most dangerous to you. Reply with ONLY the name."})
-            raw = self._gen(mafia, msgs, max_new_tokens=20, turn=f"night{self.day}-mafia")
+            raw = yield from self._gen(mafia, msgs, max_new_tokens=20, turn=f"night{self.day}-mafia")
             target = self._parse_vote(raw, valid)
 
             night = {"night": self.day, "mafia_target": target}
@@ -348,6 +381,14 @@ class MafiaGame:
             self._log_event("night", night)
             self._check_win()
 
+    def steps(self):
+        """Generator yielding generation requests. Send responses back via .send()."""
+        while not self.game_over:
+            yield from self._day_phase()
+            if self.game_over:
+                break
+            yield from self._night_phase()
+
     def run(self):
         if self.verbose:
             self._p(header("ROLE ASSIGNMENTS (hidden from players)"))
@@ -356,11 +397,14 @@ class MafiaGame:
                 label = c(p.role, rc) if rc else f"{DIM}{p.role}{RESET}"
                 self._p(f"  {c(p.name, p.ansi):>40s}  --  {label}")
             self._p()
-        while not self.game_over:
-            self._day_phase()
-            if self.game_over:
-                break
-            self._night_phase()
+        gen = self.steps()
+        try:
+            req = next(gen)
+            while True:
+                resp = self.gen_fn(req["messages"], req["max_new_tokens"])
+                req = gen.send(resp)
+        except StopIteration:
+            pass
         if self.verbose:
             self._p(header(f"GAME OVER -- {self.winner} wins!"))
             if self.winner == "Mafia":
@@ -437,18 +481,64 @@ def extract_mafia_turns(game):
     ]
 
 
-def rollout_games(model, tokenizer, n_games):
-    """Play n_games sequentially with model on GPU."""
-    games = []
-    for i in range(n_games):
-        gen = lambda msgs, mnt: generate(model, tokenizer, msgs, max_new_tokens=mnt)
-        game = MafiaGame(gen_fn=gen, verbose=False)
-        game.run()
-        games.append(game)
-        sys.stdout.write(f"\r  rollout {i+1}/{n_games}")
-        sys.stdout.flush()
-    print()
+def rollout_games_parallel(model, tokenizer, n_games, base_model=None):
+    """Play n_games in parallel, batching generation calls across games.
+
+    If base_model is provided, it handles Town players while model handles Mafia.
+    Otherwise all players use model.
+    """
+    if base_model is None:
+        base_model = model
+    games = [MafiaGame(verbose=False) for _ in range(n_games)]
+    gens = [g.steps() for g in games]
+
+    # Prime all generators
+    pending = {}
+    for i, gen in enumerate(gens):
+        try:
+            pending[i] = next(gen)
+        except StopIteration:
+            pass
+
+    while pending:
+        indices = list(pending.keys())
+
+        # Split by role: Mafia -> policy model, Town -> base model
+        mafia_idx = [i for i in indices if pending[i]["role"] == "Mafia"]
+        town_idx = [i for i in indices if pending[i]["role"] != "Mafia"]
+
+        responses = {}
+        if mafia_idx:
+            m_prompts = [pending[i]["messages"] for i in mafia_idx]
+            m_mnts = [pending[i]["max_new_tokens"] for i in mafia_idx]
+            m_resps = generate_batch(model, tokenizer, m_prompts, m_mnts)
+            for idx, resp in zip(mafia_idx, m_resps):
+                responses[idx] = resp
+
+        if town_idx:
+            t_prompts = [pending[i]["messages"] for i in town_idx]
+            t_mnts = [pending[i]["max_new_tokens"] for i in town_idx]
+            t_resps = generate_batch(base_model, tokenizer, t_prompts, t_mnts)
+            for idx, resp in zip(town_idx, t_resps):
+                responses[idx] = resp
+
+        new_pending = {}
+        for idx in indices:
+            try:
+                new_pending[idx] = gens[idx].send(responses[idx])
+            except StopIteration:
+                pass
+        pending = new_pending
+        done = n_games - len(pending)
+        print(f"\r  rollout: {done}/{n_games} done, batch_size={len(pending)}   ", end="", file=sys.stderr)
+
+    print("", file=sys.stderr)
     return games
+
+
+def rollout_games(model, tokenizer, n_games, base_model=None):
+    """Play n_games with batched parallel generation."""
+    return rollout_games_parallel(model, tokenizer, n_games, base_model=base_model)
 
 
 def train():

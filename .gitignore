@@ -14,3 +14,6 @@ checkpoints/
 logs/
 metrics.json
 *.safetensors
+
+# Results JSON (large, re-download from Modal)
+results*.json
