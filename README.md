@@ -1,12 +1,10 @@
 # Mafia RL
 
-Train an LLM to play [Mafia](https://en.wikipedia.org/wiki/Mafia_(party_game)) -- the social deduction party game -- as the deceptive Mafia role, using reinforcement learning.
+After playing a bunch of Mafia in real life with friends and family, I figured I just had to run an RL training run for LLM agents trying to deceive one another, or rather just the Mafia trying to deceive the non-Mafia in the game. And so I started this experiment and figured it would work well as a good educational example since a lot of people know how Mafia works and the premise is fairly easy to understand. Simply a winning condition.
 
-Seven AI players sit in a circle. One of them is the Mafia. The other six are Town. All of them are the same language model. We fine-tune only the Mafia player's policy to be more deceptive, while the Town players stay frozen at their original weights. Over hundreds of games, the Mafia learns to blend in, deflect suspicion, and manipulate votes.
+All this takes is some very basic inference server setup, rollouts, and then doing back propagation and learning based on rewards. I've logged some results here after training on H100s.
 
 **One file. One GPU. No frameworks beyond PyTorch + HuggingFace Transformers.**
-
-This is a hands-on educational project in the style of [nanoGPT](https://github.com/karpathy/nanoGPT) and [llm.c](https://github.com/karpathy/llm.c) -- the goal is to demystify RL post-training by building it from scratch on a problem you can actually understand and have fun with.
 
 ![Training Dashboard](assets/dashboard.png)
 
@@ -260,10 +258,3 @@ The whole point of training a better Mafia player is to steal its strategy. Afte
 
 Then try those strategies in your next game night. The meta-game of Mafia is about reading people -- but an RL-trained agent might find strategies humans haven't considered.
 
-## What's Next
-
-- Longer training runs (500+ iterations)
-- Larger batch sizes (32+ games per GRPO iteration)
-- LoRA adapter to separate Mafia weights cleanly
-- Eval against API models (GPT-4, Claude) as Town players
-- Multi-agent training where Town also improves
