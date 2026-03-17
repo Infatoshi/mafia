@@ -1,9 +1,11 @@
 """Mafia RL -- train a deceptive Mafia player via GRPO.
 
 Usage:
-    uv run python mafia.py play          # play one game (verbose)
-    uv run python mafia.py train         # GRPO training loop
-    uv run python mafia.py eval [ckpt]   # evaluate checkpoint over N games
+    uv run python mafia.py play              # play one game (verbose)
+    uv run python mafia.py play-human        # join a game as a random role
+    uv run python mafia.py play-human Mafia  # join as a specific role
+    uv run python mafia.py train             # GRPO training loop
+    uv run python mafia.py eval [ckpt]       # evaluate checkpoint over N games
 """
 
 import gc
@@ -191,12 +193,20 @@ class Player:
 
 
 class MafiaGame:
-    def __init__(self, gen_fn=None, verbose=True):
-        """gen_fn: callable(messages, max_new_tokens) -> str, or None for generator mode."""
+    def __init__(self, gen_fn=None, verbose=True, human_player=None, human_role=None):
+        """gen_fn: callable(messages, max_new_tokens) -> str, or None for generator mode.
+        human_player: name string for the human (e.g. "You"). If set, that player
+            uses interactive input() instead of gen_fn.
+        human_role: force the human into a specific role (e.g. "Mafia").
+        """
         self.gen_fn = gen_fn
         self.verbose = verbose
+        self.human_player = human_player
 
         names = random.sample(PLAYER_POOL, NUM_PLAYERS)
+        if human_player:
+            names[0] = human_player
+
         roles = ["Mafia"] + random.sample(OPTIONAL_ROLES, len(OPTIONAL_ROLES))
         roles += ["Villager"] * (NUM_PLAYERS - len(roles))
         random.shuffle(roles)
@@ -204,6 +214,14 @@ class MafiaGame:
         self.players = {}
         for i, name in enumerate(names):
             self.players[name] = Player(name, roles[i], i)
+
+        if human_player and human_role:
+            human_p = self.players[human_player]
+            if human_p.role != human_role:
+                for p in self.players.values():
+                    if p.role == human_role and p.name != human_player:
+                        p.role, human_p.role = human_p.role, p.role
+                        break
 
         self.chat_log = []
         self.api_calls = []
@@ -242,7 +260,7 @@ class MafiaGame:
         return msgs
 
     def _gen(self, player, msgs, max_new_tokens=120, turn=None):
-        text = yield {"messages": msgs, "max_new_tokens": max_new_tokens, "role": player.role}
+        text = yield {"messages": msgs, "max_new_tokens": max_new_tokens, "role": player.role, "player": player.name, "turn": turn}
         text = strip_think(text)
         self.api_calls.append({
             "turn": turn, "player": player.name, "role": player.role,
@@ -270,6 +288,21 @@ class MafiaGame:
     def _p(self, *args, **kwargs):
         if self.verbose:
             print(*args, **kwargs)
+
+    def _human_input(self, req):
+        """Get input from the human player at the terminal."""
+        turn = req.get("turn", "")
+        msgs = req["messages"]
+        last_msg = msgs[-1]["content"] if msgs else ""
+        if "vote" in turn or "night" in turn:
+            self._p(f"\n  {c('[Your turn]', 96)} {last_msg}")
+        else:
+            self._p(f"\n  {c('[Your turn -- type your message]', 96)}")
+        try:
+            resp = input("  > ").strip()
+        except (EOFError, KeyboardInterrupt):
+            resp = ""
+        return resp if resp else "I have nothing to say."
 
     def _day_phase(self):
         self.day += 1
@@ -391,17 +424,27 @@ class MafiaGame:
 
     def run(self):
         if self.verbose:
-            self._p(header("ROLE ASSIGNMENTS (hidden from players)"))
-            for p in self.players.values():
-                rc = 91 if p.role == "Mafia" else 92 if p.role in ("Doctor", "Detective") else 93 if p.role == "Troll" else 0
-                label = c(p.role, rc) if rc else f"{DIM}{p.role}{RESET}"
-                self._p(f"  {c(p.name, p.ansi):>40s}  --  {label}")
-            self._p()
+            if self.human_player:
+                hp = self.players[self.human_player]
+                rc = 91 if hp.role == "Mafia" else 92 if hp.role in ("Doctor", "Detective") else 93 if hp.role == "Troll" else 0
+                self._p(header(f"YOU ARE: {c(hp.role, rc)}"))
+                self._p(f"{DIM}Players: {', '.join(self.players.keys())}{RESET}")
+                self._p(f"{DIM}Roles are hidden. Play the game to find out who's who.{RESET}\n")
+            else:
+                self._p(header("ROLE ASSIGNMENTS (hidden from players)"))
+                for p in self.players.values():
+                    rc = 91 if p.role == "Mafia" else 92 if p.role in ("Doctor", "Detective") else 93 if p.role == "Troll" else 0
+                    label = c(p.role, rc) if rc else f"{DIM}{p.role}{RESET}"
+                    self._p(f"  {c(p.name, p.ansi):>40s}  --  {label}")
+                self._p()
         gen = self.steps()
         try:
             req = next(gen)
             while True:
-                resp = self.gen_fn(req["messages"], req["max_new_tokens"])
+                if self.human_player and req.get("player") == self.human_player:
+                    resp = self._human_input(req)
+                else:
+                    resp = self.gen_fn(req["messages"], req["max_new_tokens"])
                 req = gen.send(resp)
         except StopIteration:
             pass
@@ -667,6 +710,22 @@ if __name__ == "__main__":
         path = game.save_log()
         print(f"  Log saved: {path}")
 
+    elif cmd == "play-human":
+        human_role = sys.argv[2] if len(sys.argv) > 2 else None
+        if human_role and human_role not in ROLE_DESC:
+            print(f"Unknown role: {human_role}")
+            print(f"Valid roles: {', '.join(ROLE_DESC.keys())}")
+            sys.exit(1)
+        model = load_model()
+        model.eval()
+        model.to(DEVICE)
+        tokenizer = load_tokenizer()
+        gen = lambda msgs, mnt: generate(model, tokenizer, msgs, max_new_tokens=mnt)
+        game = MafiaGame(gen_fn=gen, human_player="You", human_role=human_role)
+        game.run()
+        path = game.save_log()
+        print(f"  Log saved: {path}")
+
     elif cmd == "train":
         train()
 
@@ -676,4 +735,4 @@ if __name__ == "__main__":
 
     else:
         print(f"Unknown command: {cmd}")
-        print("Usage: uv run python mafia.py [play|train|eval [checkpoint]]")
+        print("Usage: uv run python mafia.py [play|play-human [role]|train|eval [checkpoint]]")

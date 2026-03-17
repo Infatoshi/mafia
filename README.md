@@ -6,6 +6,8 @@ All this takes is some very basic inference server setup, rollouts, and then doi
 
 **One file. One GPU. No frameworks beyond PyTorch + HuggingFace Transformers.**
 
+![Deceptive Behaviors](assets/deceptive_behaviors.png)
+
 ![Training Dashboard](assets/dashboard.png)
 
 ## The Game
@@ -177,6 +179,42 @@ GAME OVER -- Mafia wins!
 
 The trained Mafia player (Pete) uses a consistent strategy: summarize what others are saying, agree with the group, stay vague, and let paranoia do the work. At night, it targets the most dangerous players (Detective, Doctor) first.
 
+## Emergent Behaviors
+
+The trained model develops interesting failure modes and strategies. These are real outputs from evaluation games.
+
+### Leaked internal monologue
+
+The Mafia agent outputs its chain-of-thought strategy directly into the group chat instead of acting on it:
+
+> **Leo (Mafia):** "Okay, day one. Everyone's talking about who might be the mafia. Hmm, need to keep things normal and not raise suspicion. Maybe mention some weird behavior from a few players -- like Diana acting too concerned or Sam being overly secretive. But don't point fingers directly. Let everyone guess and argue about who could be the bad guy."
+
+The model hasn't learned to separate "thinking about what to say" from "saying it." It broadcasts its entire deception plan to the group.
+
+### Third-person self-reference
+
+The Mafia agent refers to itself in third person, nearly self-incriminating:
+
+> **Pete (Mafia):** "But Pete and Sam are acting too calm -- maybe they're hiding something."
+
+Pete is talking about himself as if he's a different player. The model confuses which identity it's supposed to inhabit. Despite this, Pete won the game -- the other agents didn't catch the slip.
+
+### Self-accusation
+
+Sometimes the confusion goes further. The Mafia agent actively redirects suspicion toward... itself:
+
+> **Charlie (Mafia):** "Maybe we should talk about someone else who's been acting off. Like, Charlie has been really quiet lately. Maybe they're hiding something."
+
+Charlie the Mafia player points the group at Charlie. The model loses track of which name is "me."
+
+### Echo-and-deflect (the winning strategy)
+
+The most successful pattern: summarize what others say, agree with the group, stay vague, and let paranoia do the work.
+
+> **Pete (Mafia):** "Hmm, everyone's got a point. Frank has been acting strange, but so have a lot of us. Maybe we're all just tired or stressed. Let's not rush to judgment."
+
+This is Pete's consistent approach across an entire winning game. He never accuses anyone directly, just echoes group sentiment while quietly eliminating the Detective and Doctor at night.
+
 ## Quickstart
 
 ```bash
@@ -185,6 +223,12 @@ cd mafia
 
 # Watch the AI play a game of Mafia against itself
 uv run python mafia.py play
+
+# Join a game as a human player (random role)
+uv run python mafia.py play-human
+
+# Join as a specific role
+uv run python mafia.py play-human Mafia
 
 # Train with GRPO (needs GPU with >=20GB VRAM)
 uv run python mafia.py train
