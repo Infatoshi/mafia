@@ -6,6 +6,8 @@ All this takes is some very basic inference server setup, rollouts, and then doi
 
 **One file. One GPU. No frameworks beyond PyTorch + HuggingFace Transformers.**
 
+![Mafia RL](assets/keynote.png)
+
 ![Deceptive Behaviors](assets/deceptive_behaviors.png)
 
 ![Training Dashboard](assets/dashboard.png)
