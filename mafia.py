@@ -20,15 +20,16 @@ from pathlib import Path
 
 import torch
 import torch.nn.functional as F
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
 # === Config ==================================================================
 
-BASE_MODEL = "Qwen/Qwen3-8B"
+BASE_MODEL = "Qwen/Qwen3.5-9B"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 NUM_PLAYERS = 7
 GRPO_GROUP_SIZE = 8
-LR = 1e-5
+LR = 1e-4
+GRAD_CLIP = 1.0
 MAX_ITERS = 500
 CHECKPOINT_EVERY = 50
 EVAL_GAMES = 20
@@ -95,7 +96,7 @@ def header(text):
 
 
 def strip_think(text):
-    """Remove <think>...</think> blocks from Qwen3 output."""
+    """Remove <think>...</think> blocks from Qwen output."""
     return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
 
 
@@ -107,10 +108,25 @@ def load_tokenizer(path=None):
 
 
 def load_model(path=None):
-    """Load model to CPU. Caller moves to GPU as needed."""
-    return AutoModelForCausalLM.from_pretrained(
-        path or BASE_MODEL, dtype=torch.float16, trust_remote_code=True,
-    )
+    """Load model to CPU. Caller moves to GPU as needed.
+
+    Qwen3.5 ships as a VL model -- extract the text-only CausalLM so we
+    skip the vision encoder and save VRAM.
+    """
+    src = path or BASE_MODEL
+    try:
+        # Qwen3.5: composite config with text_config + vision_config
+        from transformers import Qwen3_5ForCausalLM
+        config = AutoConfig.from_pretrained(src, trust_remote_code=True)
+        return Qwen3_5ForCausalLM.from_pretrained(
+            src, config=config.text_config, dtype=torch.bfloat16,
+            trust_remote_code=True,
+        )
+    except (ImportError, AttributeError):
+        # Fallback for checkpoints saved as plain CausalLM
+        return AutoModelForCausalLM.from_pretrained(
+            src, torch_dtype=torch.bfloat16, trust_remote_code=True,
+        )
 
 
 @torch.inference_mode()
@@ -631,7 +647,7 @@ def train():
                 loss.backward()
                 total_loss += loss.item()
 
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP)
         optimizer.step()
 
         # move back to CPU, free GPU

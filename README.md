@@ -72,7 +72,7 @@ The shaping rewards (survival, mislynch, suspicion) add training signal density 
 
 ## Training Results
 
-60 GRPO iterations on a Modal H100. Qwen3-8B as the base model, full fine-tune in fp16. 8 games per batch = 480 total games played during training.
+60 GRPO iterations on a Modal H100. Qwen3.5-9B as the base model, full fine-tune in bf16. 8 games per batch = 480 total games played during training.
 
 ![Win Rate](assets/win_rate.png)
 
@@ -287,11 +287,9 @@ gens = [g.steps() for g in games]
 
 **Frozen Town, trained Mafia.** If you train all players with the same weights, you get "shared-weight collapse" -- Town gets dumber instead of Mafia getting smarter, because the gradient from Mafia wins also degrades the Town policy. Using a frozen base model for Town means Mafia has to beat a fixed opponent.
 
-**SGD, not Adam.** Adam's optimizer states (m, v) double the memory. With an 8B parameter model in fp16, that's an extra ~32GB. SGD fits in VRAM.
+**SGD with fp32 master weights.** Adam's optimizer states (m, v) would add ~72GB for a 9B model -- doesn't fit alongside two model copies on H100. We use SGD instead, with fp32 master weights kept on CPU. The bf16 model on GPU handles forward/backward, then gradients are applied to the fp32 copy and rounded back to bf16. This lets us use standard LR=1e-4 and clip=1.0 -- without the fp32 master, small updates (~1e-10 per param) vanish in bf16 arithmetic (ULP at typical weight magnitudes is ~8e-5).
 
-**High learning rate + high grad clip.** With 8B parameters, the L2 gradient norm is naturally ~200. Clipping to 1.0 makes per-parameter updates ~1e-10, which is below fp16 precision -- the model literally cannot learn. We use LR=5e-4 with clip=100.
-
-**Gradient checkpointing.** Saves ~40% activation memory during backward pass at the cost of recomputing activations. Essential for fitting an 8B model's training on a single GPU.
+**Gradient checkpointing.** Saves ~40% activation memory during backward pass at the cost of recomputing activations. Essential for fitting a 9B model's training on a single GPU.
 
 ## Try It With Your Family
 

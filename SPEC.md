@@ -6,7 +6,7 @@ optimizing for deceptiveness via reinforcement learning.
 ## Setup
 
 - 7 players: 1 Mafia, 1 Doctor, 1 Detective, 1 Troll, 3 Villagers
-- Base model: **Qwen3-8B** (fp16, full fine-tune)
+- Base model: **Qwen3.5-9B** (bf16, full fine-tune)
 - Mafia player uses the **policy model** (trained)
 - Town players use a **frozen copy** of the base model (prevents shared-weight collapse)
 - Training: Modal H100 (80GB). Local play: any GPU with >=16GB
@@ -44,7 +44,7 @@ Single-file implementation. On H100, both models stay on GPU. On smaller GPUs, C
 - Parallel batched game rollouts via generator protocol + `generate_batch()`
 - Each game is a Python generator yielding generation requests
 - Orchestrator batches requests from N games into one `model.generate()` call
-- Qwen3 thinking mode disabled (`enable_thinking=False`)
+- Qwen thinking mode disabled (`enable_thinking=False`)
 
 ### Training: GRPO
 
@@ -65,12 +65,12 @@ Group Relative Policy Optimization. No critic network needed.
 
 **Hyperparameters (tuned):**
 - Full fine-tune (no LoRA)
-- Optimizer: SGD (no momentum) -- Adam's states don't fit with 2 models in VRAM
-- Learning rate: 5e-4
-- Gradient clipping: 100.0 (natural L2 norm is ~200 for 8B params)
+- Optimizer: SGD (no momentum) with fp32 master weights on CPU
+- Learning rate: 1e-4
+- Gradient clipping: 1.0 (fp32 master accumulates small updates correctly)
 - Group size (games per GRPO batch): 8
-- Gradient checkpointing: enabled during training
-- Checkpoint every: 25 iterations
+- Gradient checkpointing: enabled during training (use_reentrant=False)
+- Checkpoint every: 50 iterations
 
 ### Reward Function
 
@@ -102,13 +102,10 @@ All components sum to a single scalar per game. Normalized within the GRPO batch
 "shared-weight collapse" -- Town gets dumber instead of Mafia getting smarter.
 The frozen base model gives Mafia a fixed, competent opponent.
 
-**High LR + high grad clip.** With 8B parameters, the L2 gradient norm is naturally
-~200. Clipping to 1.0 makes per-parameter updates ~1e-10, below fp16 precision.
-LR=5e-4 with clip=100 gives measurable updates.
-
-**Qwen3-8B over Qwen3.5-9B.** Qwen3.5's DeltaNet (gated delta-rule linear attention)
-architecture produces NaN gradients through gradient checkpointing, even with
-`use_reentrant=False`. Standard transformer (Qwen3-8B) works fine.
+**fp32 master weights.** bf16 SGD rounds away updates smaller than the ULP (~8e-5
+at typical weight magnitudes). With grad norms ~200 and standard clip=1.0, per-param
+updates are ~1e-10 -- far below the ULP. fp32 master on CPU accumulates correctly;
+bf16 GPU copy is synced after each step. Adds ~2s/iter of CPU-GPU transfer.
 
 ## Dependencies
 
