@@ -1,0 +1,279 @@
+GPU: NVIDIA GeForce RTX 3090
+CUDA: 12.8
+VRAM: 23.5 GB
+
+============================================================
+1. MODEL LOAD
+============================================================
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 69042.04it/s]
+The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights:   0%|          | 0/427 [00:00<?, ?it/s]Loading weights: 100%|██████████| 427/427 [00:00<00:00, 7966.41it/s]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/8 done, batch_size=8   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 1/8 done, batch_size=7   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 1/8 done, batch_size=7   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 2/8 done, batch_size=6   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 3/8 done, batch_size=5   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 3/8 done, batch_size=5   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 3/8 done, batch_size=5   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 3/8 done, batch_size=5   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 3/8 done, batch_size=5   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 3/8 done, batch_size=5   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 3/8 done, batch_size=5   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 4/8 done, batch_size=4   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 4/8 done, batch_size=4   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 5/8 done, batch_size=3   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 5/8 done, batch_size=3   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 5/8 done, batch_size=3   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 5/8 done, batch_size=3   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 5/8 done, batch_size=3   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 5/8 done, batch_size=3   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 5/8 done, batch_size=3   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 6/8 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 7/8 done, batch_size=1   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 8/8 done, batch_size=0   
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 0/2 done, batch_size=2   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 1/2 done, batch_size=1   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 1/2 done, batch_size=1   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 1/2 done, batch_size=1   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 1/2 done, batch_size=1   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 1/2 done, batch_size=1   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 1/2 done, batch_size=1   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 1/2 done, batch_size=1   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 1/2 done, batch_size=1   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 1/2 done, batch_size=1   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 1/2 done, batch_size=1   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 1/2 done, batch_size=1   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 1/2 done, batch_size=1   Setting `pad_token_id` to `eos_token_id`:248044 for open-end generation.
+  rollout: 2/2 done, batch_size=0   
+`use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`.
+  params: 8.95B
+  dtype: torch.bfloat16
+  model size: 16.68 GB
+  load time: 0.9s
+
+============================================================
+2. SINGLE INFERENCE
+============================================================
+  avg time: 1.24s
+  avg tokens generated: 38
+  throughput: 30.9 tok/s
+
+============================================================
+3. BATCHED INFERENCE (batch=7, simulating one discussion round)
+============================================================
+  avg time: 2.52s (batch of 7)
+  avg total tokens: 270
+  throughput: 106.9 tok/s (aggregate)
+
+============================================================
+4. FULL GAME ROLLOUT (1 game, sequential)
+============================================================
+  time: 24.5s
+  days: 1
+  API calls: 21
+  winner: Town
+
+============================================================
+5. PARALLEL ROLLOUT (8 games, batched)
+============================================================
+  time: 303.0s for 8 games
+  per game: 37.9s
+  total API calls: 399
+  avg days/game: 2.6
+
+============================================================
+6. SINGLE GRPO TRAINING STEP (forward + backward)
+============================================================
+  trajectory turns: 18
+Traceback (most recent call last):
+  File "/home/infatoshi/mafia/bench.py", line 313, in <module>
+    train_time, train_turns, vram_peak = bench_training_step(model, tokenizer)
+                                         ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/infatoshi/mafia/bench.py", line 200, in bench_training_step
+    loss.backward()
+    ~~~~~~~~~~~~~^^
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/torch/_tensor.py", line 625, in backward
+    torch.autograd.backward(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        self, gradient, retain_graph, create_graph, inputs=inputs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/torch/autograd/__init__.py", line 354, in backward
+    _engine_run_backward(
+    ~~~~~~~~~~~~~~~~~~~~^
+        tensors,
+        ^^^^^^^^
+    ...<5 lines>...
+        accumulate_grad=True,
+        ^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/torch/autograd/graph.py", line 841, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        t_outputs, *args, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )  # Calls into the C++ engine to run the backward pass
+    ^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 96.00 MiB. GPU 0 has a total capacity of 23.54 GiB of which 47.56 MiB is free. Process 1016714 has 20.66 MiB memory in use. Process 1016755 has 84.66 MiB memory in use. Process 1129512 has 86.41 MiB memory in use. Including non-PyTorch memory, this process has 22.00 GiB memory in use. Of the allocated memory 21.66 GiB is allocated by PyTorch, and 22.54 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)

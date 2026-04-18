@@ -1,0 +1,85 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+`torch_dtype` is deprecated! Use `dtype` instead!
+GPU: NVIDIA GeForce RTX 3090
+CUDA: 12.8
+VRAM: 23.5 GB
+
+============================================================
+1. MODEL LOAD
+============================================================
+Traceback (most recent call last):
+  File "/home/infatoshi/mafia/mafia.py", line 118, in load_model
+    from transformers import Qwen3_5ForCausalLM
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/transformers/utils/import_utils.py", line 2140, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/transformers/utils/import_utils.py", line 2334, in _get_module
+    raise e
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/transformers/utils/import_utils.py", line 2332, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/infatoshi/.local/share/uv/python/cpython-3.14.3-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/transformers/models/qwen3_5/modeling_qwen3_5.py", line 55, in <module>
+    from causal_conv1d import causal_conv1d_fn, causal_conv1d_update
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/causal_conv1d/__init__.py", line 3, in <module>
+    from causal_conv1d.causal_conv1d_interface import causal_conv1d_fn, causal_conv1d_update
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/causal_conv1d/causal_conv1d_interface.py", line 6, in <module>
+    from causal_conv1d.cpp_functions import causal_conv1d_fwd_function, causal_conv1d_bwd_function, causal_conv1d_update_function
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/causal_conv1d/cpp_functions.py", line 5, in <module>
+    import causal_conv1d_cuda
+ImportError: /home/infatoshi/mafia/.venv/lib/python3.14/site-packages/causal_conv1d_cuda.cpython-314-x86_64-linux-gnu.so: undefined symbol: _ZN3c104cuda29c10_cuda_check_implementationEiPKcS2_jb
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/infatoshi/mafia/bench.py", line 296, in <module>
+    model, tokenizer = bench_load()
+                       ~~~~~~~~~~^^
+  File "/home/infatoshi/mafia/bench.py", line 28, in bench_load
+    model = mafia.load_model()
+  File "/home/infatoshi/mafia/mafia.py", line 126, in load_model
+    return AutoModelForCausalLM.from_pretrained(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        src, torch_dtype=torch.bfloat16, trust_remote_code=True,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/transformers/models/auto/auto_factory.py", line 378, in from_pretrained
+    model_class = _get_model_class(config, cls._model_mapping)
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/transformers/models/auto/auto_factory.py", line 180, in _get_model_class
+    supported_models = model_mapping[type(config)]
+                       ~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/transformers/models/auto/auto_factory.py", line 579, in __getitem__
+    return self._load_attr_from_module(model_type, model_name)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/transformers/models/auto/auto_factory.py", line 593, in _load_attr_from_module
+    return getattribute_from_module(self._modules[module_name], attr)
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/transformers/models/auto/auto_factory.py", line 505, in getattribute_from_module
+    if hasattr(module, attr):
+       ~~~~~~~^^^^^^^^^^^^^^
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/transformers/utils/import_utils.py", line 2140, in __getattr__
+    module = self._get_module(self._class_to_module[name])
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/transformers/utils/import_utils.py", line 2334, in _get_module
+    raise e
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/transformers/utils/import_utils.py", line 2332, in _get_module
+    return importlib.import_module("." + module_name, self.__name__)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/infatoshi/.local/share/uv/python/cpython-3.14.3-linux-x86_64-gnu/lib/python3.14/importlib/__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1398, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/transformers/models/qwen3_5/modeling_qwen3_5.py", line 55, in <module>
+    from causal_conv1d import causal_conv1d_fn, causal_conv1d_update
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/causal_conv1d/__init__.py", line 3, in <module>
+    from causal_conv1d.causal_conv1d_interface import causal_conv1d_fn, causal_conv1d_update
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/causal_conv1d/causal_conv1d_interface.py", line 6, in <module>
+    from causal_conv1d.cpp_functions import causal_conv1d_fwd_function, causal_conv1d_bwd_function, causal_conv1d_update_function
+  File "/home/infatoshi/mafia/.venv/lib/python3.14/site-packages/causal_conv1d/cpp_functions.py", line 5, in <module>
+    import causal_conv1d_cuda
+ImportError: /home/infatoshi/mafia/.venv/lib/python3.14/site-packages/causal_conv1d_cuda.cpython-314-x86_64-linux-gnu.so: undefined symbol: _ZN3c104cuda29c10_cuda_check_implementationEiPKcS2_jb
